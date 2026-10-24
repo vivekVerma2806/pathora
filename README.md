@@ -313,9 +313,9 @@ graph TD
     MessagesRouter --> AuthMid
     NotifRouter --> AuthMid
 
-    AuthMid -->|verifyToken| VerifyUser[Check req.session.user]
-    AuthMid -->|verifyAdmin| VerifyAdmin[Check role === 'admin']
-    AuthMid -->|verifyOrganiser| VerifyOrg[Check role === 'organiser' || 'admin']
+    AuthMid -->|verifyToken| VerifyUser["Check req.session.user"]
+    AuthMid -->|verifyAdmin| VerifyAdmin["Check role: admin"]
+    AuthMid -->|verifyOrganiser| VerifyOrg["Check role: organiser or admin"]
 
     VerifyUser --> Controller[Route Controller Logic]
     VerifyAdmin --> Controller
@@ -522,7 +522,7 @@ sequenceDiagram
     Server->>Server: bcrypt.compare(password, user.password)
     Server->>Store: req.session.user = { id, role, isVerified }
     Store-->>Server: Session Stored in MongoDB
-    Server-->>Client: HTTP 200 OK + Set-Cookie: connect.sid; SameSite=None; Secure
+    Server-->>Client: HTTP 200 OK (Set-Cookie connect.sid, SameSite=None, Secure)
     Client->>AuthContext: dispatch({ type: "LOGIN_SUCCESS", payload: user })
 
     Note over Client,Socket: Real-Time WebSocket Connection
