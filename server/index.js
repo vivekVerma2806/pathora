@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 // import jwt from "jsonwebtoken"; // Removed JWT
 import User from "./models/User.js";
+import bcrypt from "bcryptjs";
 import cors from "cors";
 import dotenv from "dotenv";
 import { createServer } from "http";
@@ -275,10 +276,34 @@ io.on("connection", (socket) => {
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
+    .then(async () => {
         console.log("✅ MongoDB Connected");
         console.log("DB Name:", mongoose.connection.name);
         console.log("Ready State:", mongoose.connection.readyState);
+
+        // Auto-bootstrap default admin if not already present
+        try {
+            const adminExists = await User.findOne({ email: "admin@travelai.com" });
+            if (!adminExists) {
+                console.log("🌱 No admin user found. Creating default admin account...");
+                const salt = await bcrypt.genSalt(10);
+                const adminPasswordHash = await bcrypt.hash("Admin@123", salt);
+                await User.create({
+                    username: "admin",
+                    email: "admin@travelai.com",
+                    password: adminPasswordHash,
+                    role: "admin",
+                    isVerified: true,
+                    bio: "Platform Administrator & Travel Curator.",
+                    phone: "+1 555-0100",
+                    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+                    favorites: []
+                });
+                console.log("👑 Default admin account created: admin@travelai.com");
+            }
+        } catch (bootstrapErr) {
+            console.warn("⚠️ Admin bootstrap warning:", bootstrapErr.message);
+        }
     })
     .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 

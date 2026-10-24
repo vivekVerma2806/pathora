@@ -74,7 +74,8 @@ router.post("/register", async (req, res) => {
             username: normalizedUsername,
             email: normalizedEmail,
             password: hashedPassword,
-            role: role || 'user'
+            role: role || 'user',
+            isVerified: role === 'admin'
         });
 
         console.log("[AUTH_REGISTER] Saving user to DB...");
@@ -83,7 +84,7 @@ router.post("/register", async (req, res) => {
 
         // No auto-login because admin approval might be required.
         res.status(201).json({
-            message: "User registered successfully. Please wait for admin approval.",
+            message: role === 'admin' ? "Admin registered successfully." : "User registered successfully. Please wait for admin approval.",
         });
 
     } catch (err) {
